@@ -1,0 +1,147 @@
+.delete-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+  animation: fade-in 0.2s ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.delete-dialog {
+  background: var(--bg-surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-large);
+  max-width: 400px;
+  width: 100%;
+  padding: 32px 24px;
+  text-align: center;
+  animation: slide-up 0.3s ease;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.delete-dialog-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.delete-dialog h2 {
+  margin: 0 0 12px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.delete-dialog-message {
+  margin: 0 0 24px;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.delete-dialog-message strong {
+  color: var(--state-error-text);
+  font-weight: 600;
+}
+
+.delete-dialog-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 10px 16px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border-quiet);
+  border-radius: 6px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: var(--bg-muted);
+  border-color: var(--border-quiet);
+}
+
+.btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  flex: 1;
+  padding: 10px 16px;
+  background: var(--state-error-bg);
+  border: 1px solid var(--state-error-border);
+  border-radius: 6px;
+  font-weight: 600;
+  color: var(--state-error-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--state-error-dark, #dc2626);
+  color: white;
+}
+
+.btn-danger:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .delete-dialog {
+    max-width: 100%;
+    padding: 24px 16px;
+  }
+
+  .delete-dialog-icon {
+    font-size: 2.5rem;
+  }
+}

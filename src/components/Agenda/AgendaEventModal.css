@@ -1,0 +1,131 @@
+.agenda-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--overlay-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.agenda-modal__dialog {
+  background: var(--bg-surface);
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.agenda-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.agenda-modal__badge {
+  background: var(--calendar-cell-today-bg);
+  color: var(--text-accent-strong);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.agenda-modal__close {
+  background: var(--bg-surface-alt);
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+}
+
+.agenda-modal__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.agenda-modal__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.agenda-modal__row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.agenda-modal__row-icon {
+  font-size: 1.5rem;
+}
+
+.agenda-modal__row-label {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.agenda-modal__row-value {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.agenda-modal__description {
+  background: var(--bg-app);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.agenda-modal__description-label {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.agenda-modal__description-text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.agenda-modal__action {
+  width: 100%;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-accent-strong);
+}

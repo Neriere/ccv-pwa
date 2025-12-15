@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # PWA desplegada bajo /pwa
+  RewriteBase /pwa/
+
+  # No reescribir archivos/carpetas reales
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # SPA fallback
+  RewriteRule . /pwa/index.html [L]
+</IfModule>

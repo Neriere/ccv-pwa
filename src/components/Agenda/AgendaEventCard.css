@@ -1,0 +1,137 @@
+.agenda-event-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-quiet);
+  border-radius: 12px;
+  padding: 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agenda-event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.agenda-event-card:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.agenda-event-card--day {
+  border-left: 4px solid var(--accent-primary-solid);
+}
+
+.agenda-event-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.agenda-event-card__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.agenda-event-card__badge {
+  background: var(--calendar-cell-today-bg);
+  color: var(--text-accent-strong);
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.agenda-event-card__assignment {
+  display: inline-block;
+  background: var(--state-success-bg);
+  color: var(--state-success-text);
+  border: 1px solid var(--state-success-border);
+  border-radius: 10px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.agenda-event-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.agenda-event-card__meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Múltiples asignaciones */
+.agenda-event-card__assignments {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Eventos agrupados en "Mis asignaciones" */
+.evento-asignaciones {
+  background: var(--bg-surface);
+  border-left: 4px solid var(--accent-primary-solid);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.evento-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.evento-nombre {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.evento-fecha {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.evento-hora {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.funciones-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.funcion-item {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding-left: 8px;
+}
+
+.evento-lugar {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}

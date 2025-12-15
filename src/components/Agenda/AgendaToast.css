@@ -1,0 +1,29 @@
+.agenda-toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 90px;
+  background: var(--bg-surface-alt);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: var(--shadow-elevated);
+  z-index: 50;
+  max-width: 90%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition-theme);
+  cursor: pointer;
+}
+
+.agenda-toast--reminder {
+  background: var(--state-info-bg);
+  color: var(--state-info-text);
+  border-color: var(--state-info-border);
+}
+
+.agenda-toast__icon {
+  font-size: 1.1rem;
+}

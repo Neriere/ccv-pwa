@@ -13,6 +13,8 @@ import {
   markInternalNotificationRead,
 } from "../services/internalNotifications";
 
+const NOTIFICATIONS_UPDATED_EVENT = "notifications:updated";
+
 const styles = {
   container: {
     padding: "1.5rem",
@@ -130,6 +132,17 @@ export default function NotificacionesPage() {
     refresh();
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.dispatchEvent(
+      new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, {
+        detail: { unread: unreadCount },
+      })
+    );
+  }, [unreadCount]);
+
   const handleItemClick = (item) => {
     if (!item?.id) {
       return;
@@ -223,7 +236,6 @@ export default function NotificacionesPage() {
                     </div>
                   </div>
                 </div>
-                <div style={styles.itemMeta}>{item.type || ""}</div>
               </div>
               {item.body ? (
                 <div style={styles.itemBody}>{item.body}</div>

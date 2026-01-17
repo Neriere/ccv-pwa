@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getMisAsignaciones } from "../services/asignacionService";
+import {
+  getAsignacionesPorUsuario,
+  getMisAsignaciones,
+} from "../services/asignacionService";
 import { getLocalNotificationsEnabled } from "../services/notificationSettingsService";
+import { getStoredToken, getStoredUser } from "../services/sessionStorage";
 
 const STORAGE_KEY = "mis_asig_ids";
 const HOUR_IN_MS = 60 * 60 * 1000;
@@ -11,6 +15,8 @@ const TOAST_DURATION_MS = 5000;
 export function useAssignments() {
   const [assignments, setAssignments] = useState([]);
   const [toast, setToast] = useState(null);
+  const [error, setError] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   const timersRef = useRef([]);
   const toastTimerRef = useRef(null);
 
@@ -106,6 +112,18 @@ export function useAssignments() {
 
     const fetchAssignments = async () => {
       try {
+        const token = getStoredToken();
+        if (!token) {
+          if (import.meta.env.DEV) {
+            console.debug(
+              "useAssignments: sin token, no se cargan asignaciones"
+            );
+          }
+          setAssignments([]);
+          setError(null);
+          return;
+        }
+
         let notificationsEnabled = true;
         try {
           notificationsEnabled = getLocalNotificationsEnabled();
@@ -113,16 +131,45 @@ export function useAssignments() {
           notificationsEnabled = true;
         }
 
-        const response = await getMisAsignaciones();
-        const list = Array.isArray(response)
-          ? response
-          : response?.data || response?.asignaciones || [];
+        let response = null;
+        let list = [];
+
+        try {
+          response = await getMisAsignaciones();
+          list = Array.isArray(response)
+            ? response
+            : response?.data || response?.asignaciones || [];
+        } catch (error) {
+          const status = error?.status;
+
+          if (import.meta.env.DEV) {
+            console.debug("useAssignments: fallo getMisAsignaciones", {
+              status,
+              message: error?.message,
+            });
+          }
+
+          // Fallback: algunos despliegues pueden no tener /mis-asignaciones
+          // o pueden fallar por middleware. Intentar por filtro user_id.
+          const storedUser = getStoredUser();
+          if (storedUser?.id) {
+            const fallbackResponse = await getAsignacionesPorUsuario(
+              storedUser.id
+            );
+            list = Array.isArray(fallbackResponse)
+              ? fallbackResponse
+              : fallbackResponse?.data || fallbackResponse?.asignaciones || [];
+          } else {
+            throw error;
+          }
+        }
 
         if (isCancelled) {
           return;
         }
 
         setAssignments(list);
+        setError(null);
 
         const previousIds = JSON.parse(
           localStorage.getItem(STORAGE_KEY) || "[]"
@@ -170,10 +217,10 @@ export function useAssignments() {
 
         scheduleReminders(list);
       } catch (error) {
-        console.warn(
-          "No se pudieron cargar mis asignaciones:",
-          error?.message || error
-        );
+        const message = error?.message || "No se pudieron cargar asignaciones";
+        console.warn("No se pudieron cargar mis asignaciones:", message);
+        setAssignments([]);
+        setError(message);
       }
     };
 
@@ -184,7 +231,26 @@ export function useAssignments() {
       cleanupTimers();
       clearToastTimer();
     };
-  }, [cleanupTimers, clearToastTimer, scheduleReminders]);
+  }, [cleanupTimers, clearToastTimer, scheduleReminders, refreshKey]);
+
+  useEffect(() => {
+    const bump = () => setRefreshKey((prev) => prev + 1);
+
+    const onStorage = (event) => {
+      if (event?.key === "auth_token") {
+        bump();
+      }
+    };
+
+    // Reintentar carga al refrescar token o cambiar sesión.
+    window.addEventListener("auth:token-refreshed", bump);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.removeEventListener("auth:token-refreshed", bump);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
 
   const dismissToast = useCallback(() => {
     clearToastTimer();
@@ -195,5 +261,6 @@ export function useAssignments() {
     assignments,
     toast,
     dismissToast,
+    error,
   };
 }

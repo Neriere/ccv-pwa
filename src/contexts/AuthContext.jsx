@@ -31,6 +31,17 @@ function AuthProvider({ children }) {
   const [tokenExpiresAt, setTokenExpiresAt] = useState(null);
   const inactivityTimerRef = useRef(null);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+      return { success: true, user: currentUser };
+    } catch (error) {
+      console.warn("No se pudo refrescar el usuario:", error);
+      return { success: false, error };
+    }
+  }, []);
+
   const clearInactivityTimer = useCallback(() => {
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
@@ -208,15 +219,24 @@ function AuthProvider({ children }) {
         ? usr.roluser_id
         : undefined;
 
+    const normalizedRoleName = (usr) => {
+      const raw = roleName(usr);
+      if (!raw) return "";
+      return raw.toString().trim().toLowerCase();
+    };
+
     const isUserAdmin = () =>
-      roleName(user)?.toString().toLowerCase() === "admin" ||
+      normalizedRoleName(user) === "admin" ||
+      normalizedRoleName(user) === "administrador" ||
       roleId(user) === 1;
     const isUserLider = () =>
-      roleName(user)?.toString().toLowerCase() === "lider" ||
-      roleId(user) === 2;
-    const isUserMiembro = () =>
-      roleName(user)?.toString().toLowerCase() === "miembro" ||
+      normalizedRoleName(user) === "lider" ||
+      normalizedRoleName(user) === "líder" ||
       roleId(user) === 3;
+    const isUserMiembro = () =>
+      normalizedRoleName(user) === "colaborador" ||
+      normalizedRoleName(user) === "miembro" ||
+      roleId(user) === 2;
 
     const canManageUsers = () => isUserAdmin() || isUserLider();
     const canManageEvents = () => isUserAdmin() || isUserLider();
@@ -231,6 +251,7 @@ function AuthProvider({ children }) {
       isAuthenticated: !!token,
       login: handleLogin,
       logout: handleLogout,
+      refreshUser,
       canManageUsers,
       canManageEvents,
       canViewDashboard,
@@ -238,7 +259,16 @@ function AuthProvider({ children }) {
       isLider: isUserLider,
       isMiembro: isUserMiembro,
     };
-  }, [user, token, tokenExpiresAt, loading, error, handleLogin, handleLogout]);
+  }, [
+    user,
+    token,
+    tokenExpiresAt,
+    loading,
+    error,
+    handleLogin,
+    handleLogout,
+    refreshUser,
+  ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { useTheme } from "../hooks/useTheme";
 import {
   fetchNotificationSettings,
   getLocalNotificationsEnabled,
@@ -14,9 +15,10 @@ import {
 } from "../services/pushService";
 
 const ROLE_NAMES = {
-  1: "Admin",
-  2: "Líder",
-  3: "Miembro",
+  1: "Administrador",
+  2: "Colaborador",
+  3: "Líder",
+  4: "Inactivo",
 };
 
 const styles = {
@@ -87,7 +89,8 @@ const InfoRow = ({ label, children }) => (
 
 const AjustesPage = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading, refreshUser } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [notificationsEnabled, setNotificationsEnabledState] = useState(() => {
     try {
       return getLocalNotificationsEnabled();
@@ -99,10 +102,40 @@ const AjustesPage = () => {
   const showPushTestButton =
     String(import.meta.env?.VITE_SHOW_PUSH_TEST_BUTTON || "") === "1";
 
-  // Ajuste para backend que retorna roluser_id
-  const roleLabel = user?.roluser_id
-    ? ROLE_NAMES[user.roluser_id] || `ID ${user.roluser_id}`
-    : null;
+  const resolveRoleId = (usr) => {
+    const candidates = [
+      usr?.roluser_id,
+      usr?.role_id,
+      usr?.roluser?.id,
+      usr?.role?.id,
+      usr?.roluserId,
+      usr?.roleId,
+    ];
+
+    for (const value of candidates) {
+      if (typeof value === "number" && Number.isFinite(value)) return value;
+      if (typeof value === "string" && value.trim() !== "") {
+        const parsed = Number.parseInt(value, 10);
+        if (Number.isFinite(parsed)) return parsed;
+      }
+    }
+    return null;
+  };
+
+  const roleId = resolveRoleId(user);
+  const roleLabel = roleId ? ROLE_NAMES[roleId] || `ID ${roleId}` : null;
+
+  const roleRefreshAttemptedRef = useRef(false);
+  useEffect(() => {
+    if (roleRefreshAttemptedRef.current) return;
+    if (authLoading) return;
+    if (!user) return;
+    if (roleLabel) return;
+    if (typeof refreshUser !== "function") return;
+
+    roleRefreshAttemptedRef.current = true;
+    refreshUser();
+  }, [authLoading, user, roleLabel, refreshUser]);
 
   const handleLogout = async () => {
     if (window.confirm("¿Estás seguro de que quieres cerrar sesión?")) {
@@ -154,20 +187,30 @@ const AjustesPage = () => {
           <InfoRow label="Email">{user?.email || "N/A"}</InfoRow>
 
           <InfoRow label="Rol">
-            {roleLabel ? (
-              roleLabel
-            ) : (
-              <span style={styles.warningText}>
-                N/A
-                <span style={{ fontSize: 12, marginLeft: 8 }}>
-                  (No se pudo obtener el rol. Prueba recargar o cerrar sesión)
-                </span>
-              </span>
-            )}
+            {roleLabel
+              ? roleLabel
+              : authLoading
+              ? "Cargando…"
+              : "No disponible"}
           </InfoRow>
         </div>
       </section>
       <section style={styles.cardOverflow}>
+        <div style={styles.itemRow}>
+          <span style={{ color: "var(--text-primary)" }}>
+            Tema: {theme === "dark" ? "Oscuro" : "Claro"}
+          </span>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={theme === "dark"}
+              onChange={toggleTheme}
+              aria-label="Alternar tema claro/oscuro"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600" />
+          </label>
+        </div>
         <div style={styles.itemRow}>
           <span style={{ color: "var(--text-primary)" }}>Notificaciones</span>
           <label className="relative inline-flex items-center cursor-pointer">

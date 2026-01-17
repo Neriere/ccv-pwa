@@ -44,7 +44,8 @@ VITE_SENTRY_DSN=
 
 - Configuración en [vite.config.js](vite.config.js) usando `vite-plugin-pwa` con estrategia `injectManifest`.
 - Service Worker fuente: [src/sw.js](src/sw.js). El SW final se genera en `dist/sw.js` durante el build.
-- Manifest e íconos: [public/manifest.json](public/manifest.json), [public/icon-192x192.png](public/icon-192x192.png), [public/icon-512x512.png](public/icon-512x512.png).
+- Manifest: lo genera `vite-plugin-pwa` (ej: `dist/manifest.webmanifest`) respetando `VITE_APP_BASE`.
+- Íconos: [public/icon-192x192.png](public/icon-192x192.png), [public/icon-512x512.png](public/icon-512x512.png).
 
 ## Despliegue
 

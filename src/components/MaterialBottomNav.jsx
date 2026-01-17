@@ -1,9 +1,13 @@
-import React, { useContext } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { ThemeContext } from "../context/ThemeContext";
 import { PwaInstallBanner } from "./UI/PwaInstallBanner";
+import { listNotifications } from "../services/notificationService";
+import { listInternalNotifications } from "../services/internalNotifications";
 import "./MaterialBottomNav.css";
+
+const NOTIFICATIONS_UPDATED_EVENT = "notifications:updated";
 
 const tabs = [
   {
@@ -112,6 +116,46 @@ const MaterialBottomNav = () => {
   useAuth();
   const { theme } = useContext(ThemeContext);
   const visibleTabs = tabs;
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const refreshUnreadCount = useCallback(async () => {
+    try {
+      // Usar limit=1 para que el backend pueda devolver `unread` sin traer todo.
+      const result = await listNotifications({ limit: 1 });
+      if (typeof result?.unread === "number") {
+        setUnreadCount(result.unread);
+      } else {
+        const items = Array.isArray(result?.items) ? result.items : [];
+        setUnreadCount(items.filter((item) => item && !item.readAt).length);
+      }
+    } catch {
+      const items = listInternalNotifications();
+      setUnreadCount(items.filter((item) => item && !item.readAt).length);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshUnreadCount();
+  }, [refreshUnreadCount, location.pathname]);
+
+  useEffect(() => {
+    const handleUpdated = (event) => {
+      const next = event?.detail?.unread;
+      if (typeof next === "number") {
+        setUnreadCount(next);
+      } else {
+        refreshUnreadCount();
+      }
+    };
+
+    window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, handleUpdated);
+    window.addEventListener("focus", refreshUnreadCount);
+
+    return () => {
+      window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, handleUpdated);
+      window.removeEventListener("focus", refreshUnreadCount);
+    };
+  }, [refreshUnreadCount]);
 
   return (
     <div className="material-layout">
@@ -120,16 +164,34 @@ const MaterialBottomNav = () => {
         <Outlet />
       </main>
       <nav className="material-bottom-nav">
-        {visibleTabs.map((tab) => (
-          <Link
-            key={tab.to}
-            to={tab.to}
-            className={location.pathname === tab.to ? "active" : ""}
-          >
-            <div className="icon-wrapper">{tab.icon(theme)}</div>
-            <span className="label">{tab.label}</span>
-          </Link>
-        ))}
+        {visibleTabs.map((tab) => {
+          const isNotifications = tab.to === "/notificaciones";
+          const showBadge = isNotifications && unreadCount > 0;
+          const badgeText = unreadCount > 99 ? "99+" : String(unreadCount);
+
+          return (
+            <Link
+              key={tab.to}
+              to={tab.to}
+              className={location.pathname === tab.to ? "active" : ""}
+              aria-label={
+                isNotifications && unreadCount > 0
+                  ? `Notificaciones (${unreadCount} sin leer)`
+                  : tab.label
+              }
+            >
+              <div className="icon-wrapper">
+                {tab.icon(theme)}
+                {showBadge ? (
+                  <span className="material-bottom-nav__badge">
+                    {badgeText}
+                  </span>
+                ) : null}
+              </div>
+              <span className="label">{tab.label}</span>
+            </Link>
+          );
+        })}
       </nav>
     </div>
   );

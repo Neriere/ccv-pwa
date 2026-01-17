@@ -110,7 +110,55 @@ export default function AgendaPage() {
     assignments: misAsignaciones,
     toast,
     dismissToast,
+    error: misAsignacionesError,
   } = useAssignments();
+
+  const derivedAsignaciones = useMemo(() => {
+    if (!misAsignacionesError) {
+      return [];
+    }
+
+    const userId = user?.id;
+    if (!userId) {
+      return [];
+    }
+
+    const result = [];
+    for (const evento of eventos || []) {
+      const rawList =
+        evento?.user_evento_funciones ||
+        evento?.userEventoFunciones ||
+        evento?.asignaciones ||
+        [];
+      if (!Array.isArray(rawList) || rawList.length === 0) {
+        continue;
+      }
+
+      for (const raw of rawList) {
+        const rawUserId = raw?.user_id || raw?.usuario?.id;
+        if (rawUserId !== userId) {
+          continue;
+        }
+
+        result.push({
+          ...raw,
+          id: raw?.id || `${evento?.id || "evento"}-${raw?.funcion_id || "f"}`,
+          evento_id: raw?.evento_id || evento?.id,
+          evento,
+          funcion: raw?.funcion || raw?.funcion,
+        });
+      }
+    }
+
+    return result;
+  }, [misAsignacionesError, user?.id, eventos]);
+
+  const assignmentsForUi = useMemo(() => {
+    if (Array.isArray(misAsignaciones) && misAsignaciones.length > 0) {
+      return misAsignaciones;
+    }
+    return derivedAsignaciones;
+  }, [misAsignaciones, derivedAsignaciones]);
 
   const loadEventos = useCallback(async () => {
     try {
@@ -319,7 +367,7 @@ export default function AgendaPage() {
 
   const asignacionesPorEvento = useMemo(() => {
     const map = new Map();
-    for (const assignment of misAsignaciones || []) {
+    for (const assignment of assignmentsForUi || []) {
       const eventId = assignment?.evento_id || assignment?.evento?.id;
       if (!eventId) {
         continue;
@@ -330,7 +378,7 @@ export default function AgendaPage() {
       map.get(eventId).push(assignment);
     }
     return map;
-  }, [misAsignaciones]);
+  }, [assignmentsForUi]);
 
   const cambiarMes = (delta) => {
     let nuevoMes = mesActual + delta;
@@ -376,7 +424,7 @@ export default function AgendaPage() {
   const sortedAssignments = useMemo(() => {
     const eventMap = new Map();
 
-    for (const assignment of misAsignaciones || []) {
+    for (const assignment of assignmentsForUi || []) {
       const eventId = assignment?.evento_id || assignment?.evento?.id;
       if (!eventId) continue;
 
@@ -396,7 +444,7 @@ export default function AgendaPage() {
           new Date(b?.evento?.fecha || "2100-01-01")
       )
       .slice(0, 3);
-  }, [misAsignaciones]);
+  }, [assignmentsForUi]);
 
   return (
     <div className="agenda-page">
@@ -493,7 +541,11 @@ export default function AgendaPage() {
 
         {sortedAssignments.length === 0 ? (
           <div className="agenda-empty">
-            <p>Aún no tienes asignaciones.</p>
+            <p>
+              {misAsignacionesError
+                ? "No se pudieron cargar tus asignaciones (error del servidor)."
+                : "Aún no tienes asignaciones."}
+            </p>
           </div>
         ) : (
           <div className="agenda-assignments-list">
